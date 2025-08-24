@@ -13,4 +13,3 @@ src-git helloworld https://github.com/fw876/helloworld.git
 #src-link custom /usr/src/openwrt/custom-feed
 src-git kenzo https://github.com/kenzok8/openwrt-packages
 src-git small https://github.com/kenzok8/small
-src-git NueXini_Packages https://github.com/NueXini/NueXini_Packages.git
