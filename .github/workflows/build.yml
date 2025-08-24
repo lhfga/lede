@@ -1,13 +1,7 @@
-- name: Clean disk space
-  run: |
-    sudo rm -rf /usr/share/dotnet
-    sudo rm -rf /opt/ghc
-    sudo rm -rf /usr/local/share/boost
-    sudo rm -rf "$AGENT_TOOLSDIRECTORY"
-    df -h
+
 
 name: Build Lean LEDE
-
+      
 on:
   workflow_dispatch:
   push:
@@ -33,7 +27,13 @@ jobs:
         libreadline-dev libssl-dev libtool llvm lrzsz msmtp ninja-build p7zip p7zip-full patch pkgconf \
         python3 python3-pyelftools python3-setuptools qemu-utils rsync scons squashfs-tools subversion \
         swig texinfo uglifyjs upx-ucl unzip vim wget xmlto xxd zlib1g-dev
-
+    - name: Clean disk space
+      run: |
+        sudo rm -rf /usr/share/dotnet
+        sudo rm -rf /opt/ghc
+        sudo rm -rf /usr/local/share/boost
+        sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+        df -h
     - name: Update & install feeds
       run: |
         ./scripts/feeds update -a
