@@ -1,61 +1,68 @@
+name: Build OpenWrt Lean
 
-
-name: Build Lean LEDE
-      
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - master
 
 jobs:
   build:
     runs-on: ubuntu-22.04
 
     steps:
-    - name: Checkout
-      uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v4
 
-    - name: Init build environment
-      run: |
-        sudo apt update -y
-        sudo apt full-upgrade -y
-        sudo apt install -y ack antlr3 asciidoc autoconf automake autopoint binutils bison build-essential \
-        bzip2 ccache clang cmake cpio curl device-tree-compiler flex gawk gcc-multilib g++-multilib gettext \
-        genisoimage git gperf haveged help2man intltool libc6-dev-i386 libelf-dev libfuse-dev libglib2.0-dev \
-        libgmp3-dev libltdl-dev libmpc-dev libmpfr-dev libncurses5-dev libncursesw5-dev libpython3-dev \
-        libreadline-dev libssl-dev libtool llvm lrzsz msmtp ninja-build p7zip p7zip-full patch pkgconf \
-        python3 python3-pyelftools python3-setuptools qemu-utils rsync scons squashfs-tools subversion \
-        swig texinfo uglifyjs upx-ucl unzip vim wget xmlto xxd zlib1g-dev
-    - name: Clean disk space
-      run: |
-        sudo rm -rf /usr/share/dotnet
-        sudo rm -rf /opt/ghc
-        sudo rm -rf /usr/local/share/boost
-        sudo rm -rf "$AGENT_TOOLSDIRECTORY"
-        df -h
-    - name: Update & install feeds
-      run: |
-        ./scripts/feeds update -a
-        ./scripts/feeds install -a
+      - name: Free up disk space
+        run: |
+          echo "Before cleanup:"
+          df -h
+          sudo rm -rf /opt/* /usr/local/lib/android /usr/share/dotnet /usr/lib/jvm
+          sudo apt-get clean
+          echo "After cleanup:"
+          df -h
 
-    - name: Load custom config
-      run: |
-        [ -e .config ] && cp .config .config.old || true
-        make defconfig
+      - name: Install dependencies
+        run: |
+          sudo apt update -y
+          sudo apt full-upgrade -y
+          sudo apt install -y ack antlr3 asciidoc autoconf automake autopoint binutils bison build-essential \
+          bzip2 ccache clang cmake cpio curl device-tree-compiler flex gawk gcc-multilib g++-multilib gettext \
+          genisoimage git gperf haveged help2man intltool libc6-dev-i386 libelf-dev libfuse-dev libglib2.0-dev \
+          libgmp3-dev libltdl-dev libmpc-dev libmpfr-dev libncurses5-dev libncursesw5-dev libpython3-dev \
+          libreadline-dev libssl-dev libtool llvm lrzsz msmtp ninja-build p7zip p7zip-full patch pkgconf \
+          python3 python3-pyelftools python3-setuptools qemu-utils rsync scons squashfs-tools subversion \
+          swig texinfo uglifyjs upx-ucl unzip vim wget xmlto xxd zlib1g-dev
 
-    - name: Build
-      run: |
-        make -j$(nproc) V=s
+      - name: Clone Lean's OpenWrt
+        run: |
+          git clone https://github.com/coolsnowwolf/lede
 
-    - name: Upload firmware to Artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: lede-firmware
-        path: bin/targets/
+      - name: Load custom config
+        working-directory: lede
+        run: |
+          [ -e ../.config ] && cp ../.config .config || echo "Using default config"
+          make defconfig
 
-    - name: Upload firmware to Release
-      uses: softprops/action-gh-release@v1
-      if: github.event_name == 'workflow_dispatch' || github.event_name == 'push'
-      with:
-        files: bin/targets/**/* 
+      - name: Download packages
+        working-directory: lede
+        run: |
+          make download -j8
+          find dl -size -1024c -delete
+
+      - name: Compile firmware
+        working-directory: lede
+        run: |
+          make -j$(nproc) || make -j1 V=s
+
+      - name: Upload firmware
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lede-x86_64
+          path: lede/bin/targets/x86/64/
+
+      - name: Clean up build files
+        if: always()
+        working-directory: lede
+        run: |
+          rm -rf build_dir staging_dir tmp
+          df -h
