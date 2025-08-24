@@ -35,6 +35,11 @@ jobs:
       - name: Clone Lean's OpenWrt
         run: |
           git clone https://github.com/coolsnowwolf/lede
+      - name: Update & install feeds
+        working-directory: lede
+        run: |
+         ./scripts/feeds update -a
+         ./scripts/feeds install -a
 
       - name: Load custom config
         working-directory: lede
