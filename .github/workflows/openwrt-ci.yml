@@ -62,9 +62,10 @@ jobs:
           ./scripts/feeds update -a
           ./scripts/feeds install -a
 
-      - name: Generate configuration file
+     
+      - name: Load custom config
         run: |
-          [ -e ../.config ] && cp ../.config .config || echo "Using default config"
+          cp CONFIG .config
           make defconfig
 
       - name: Download packages
