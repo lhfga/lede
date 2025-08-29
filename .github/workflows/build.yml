@@ -63,9 +63,7 @@ jobs:
           ./scripts/feeds update -a
           ./scripts/feeds install -a
 
-      - name: Copy custom .config
-        run: |
-          cp -f .config ./.config
+      
           
       - name: Load custom config
         run: |
