@@ -65,7 +65,7 @@ jobs:
 
       - name: Copy custom .config
         run: |
-          cp -f .config lede/.config
+          cp -f .config .config
           
       - name: Load custom config
         run: |
