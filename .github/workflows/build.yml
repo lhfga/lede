@@ -63,7 +63,10 @@ jobs:
           ./scripts/feeds update -a
           ./scripts/feeds install -a
 
-     
+      - name: Copy custom .config
+        run: |
+          cp -f .config lede/.config
+          
       - name: Load custom config
         run: |
           make defconfig
