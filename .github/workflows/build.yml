@@ -67,6 +67,7 @@ jobs:
           
       - name: Load custom config
         run: |
+          cp -f my.config .config 
           make defconfig
 
       - name: Download packages
