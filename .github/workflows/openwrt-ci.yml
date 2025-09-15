@@ -5,11 +5,12 @@
 #
 # Copyright (C) 2020 KFERMercer
 #
-name: OpenWrt-CI
+name: myopenwrt
 
 on:
+  workflow_dispatch:
   schedule:
-    - cron: 0 20 * * *
+    - cron: "0 20 * * *"
 
 permissions:
   contents: read
@@ -62,8 +63,12 @@ jobs:
           ./scripts/feeds update -a
           ./scripts/feeds install -a
 
-      - name: Generate configuration file
-        run: make defconfig
+      
+          
+      - name: Load custom config
+        run: |
+          cp -f my.config .config 
+          make defconfig
 
       - name: Download packages
         run: make download -j16
